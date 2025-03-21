@@ -145,4 +145,5 @@ void interpreter_interpret(Interpreter* interpreter) {
     }
 
     arrfree(interpreter->program);
+    hmfree(interpreter->jump_map);
 }

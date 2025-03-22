@@ -11,7 +11,6 @@ void interpreter_init(Interpreter* interpreter) {
 
     interpreter->instruction_pointer = 0;
     interpreter->memory_pointer = 0;
-    interpreter->jump_map = NULL;
     interpreter->program = NULL;
     lexer_init(&interpreter->lexer);
 }
@@ -45,6 +44,8 @@ void interpreter_load_program_from_file(Interpreter* interpreter, char* program_
             case '<':
             case '+':
             case '-':
+            case '.':
+            case ',':
                 {
                     char s = lexer_next(&interpreter->lexer);
                     uint8_t streak = 1;
@@ -59,8 +60,6 @@ void interpreter_load_program_from_file(Interpreter* interpreter, char* program_
                     c = s;
                 }
                 break;
-            case '.':
-            case ',':
             case '[':
             case ']':
                 {
@@ -77,34 +76,27 @@ void interpreter_load_program_from_file(Interpreter* interpreter, char* program_
     lexer_free(&interpreter->lexer);
 }
 
-void interpreter_precompute_jumps(Interpreter* interpreter) {
+void interpreter_interpret(Interpreter* interpreter) {
+
     uint64_t* stack = NULL;
+    uint64_t targets[arrlen(interpreter->program)];
 
-    uint64_t local_instruction_pointer = 0;
-
-    while (local_instruction_pointer < arrlen(interpreter->program)) {
-        IRInstruction ir_inst = interpreter->program[local_instruction_pointer];
-
-        switch (ir_inst.kind) {
-            case JUMP_IF_ZERO: arrpush(stack, local_instruction_pointer); break;
-            case JUMP_IF_NOT_ZERO:
-                {
-                    uint64_t target = arrpop(stack);
-                    hmput(interpreter->jump_map, local_instruction_pointer, target);
-                    hmput(interpreter->jump_map, target, local_instruction_pointer);
-                }
-                break;
-            default: break;
+    for (uint64_t i = 0, j; i < arrlen(interpreter->program); i++) {
+        if (interpreter->program[i].kind == JUMP_IF_ZERO) {
+            arrpush(stack, i);
+        } else if (interpreter->program[i].kind == JUMP_IF_NOT_ZERO) {
+            if (arrlen(stack) == 0) {
+                printf("Unmatched ']' at byte %lu", (i + 1));
+                exit(EXIT_FAILURE);
+            } else {
+                j = arrpop(stack);
+                targets[i] = j;
+                targets[j] = i;
+            }
         }
-
-        local_instruction_pointer++;
     }
 
     arrfree(stack);
-}
-
-void interpreter_interpret(Interpreter* interpreter) {
-    interpreter_precompute_jumps(interpreter);
 
     while (interpreter->instruction_pointer < arrlen(interpreter->program)) {
         IRInstruction ir_inst = interpreter->program[interpreter->instruction_pointer];
@@ -116,28 +108,33 @@ void interpreter_interpret(Interpreter* interpreter) {
             case DECREMENT_BYTE: interpreter->memory[interpreter->memory_pointer] -= ir_inst.operand; break;
             case PRINT_BYTE:
                 {
-                    char byte_as_char = (char)interpreter->memory[interpreter->memory_pointer];
-                    printf("%c", byte_as_char);
-                    fflush(stdout);
+                    for (size_t i = 0; i < ir_inst.operand; i++) {
+                        char byte_as_char = (char)interpreter->memory[interpreter->memory_pointer];
+                        printf("%c", byte_as_char);
+                        fflush(stdout);
+                    }
                 }
                 break;
             case READ_BYTE:
                 {
-                    char input_byte;
-                    int check = scanf("%c", &input_byte);
-                    if (check < 0) {
-                        printf("[ERROR] Your input is wrong\n");
+                    for (size_t i = 0; i < ir_inst.operand; i++) {
+                        char input_byte;
+                        int check = scanf("%c", &input_byte);
+                        if (check < 0) {
+                            printf("[ERROR] Your input is wrong\n");
+                            exit(EXIT_FAILURE);
+                        }
+                        interpreter->memory[interpreter->memory_pointer] = (uint8_t)input_byte;
                     }
-                    interpreter->memory[interpreter->memory_pointer] = (uint8_t)input_byte;
                 }
                 break;
             case JUMP_IF_ZERO:
                 if (interpreter->memory[interpreter->memory_pointer] == 0)
-                    interpreter->instruction_pointer = hmget(interpreter->jump_map, interpreter->instruction_pointer);
+                    interpreter->instruction_pointer = targets[interpreter->instruction_pointer];
                 break;
             case JUMP_IF_NOT_ZERO:
                 if (interpreter->memory[interpreter->memory_pointer] != 0)
-                    interpreter->instruction_pointer = hmget(interpreter->jump_map, interpreter->instruction_pointer);
+                    interpreter->instruction_pointer = targets[interpreter->instruction_pointer];
                 break;
         }
 
@@ -145,5 +142,4 @@ void interpreter_interpret(Interpreter* interpreter) {
     }
 
     arrfree(interpreter->program);
-    hmfree(interpreter->jump_map);
 }

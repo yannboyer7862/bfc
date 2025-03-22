@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/yann/Documents/Programming/bfc/build_rel",
+  "command": "/usr/bin/cc -I/home/yann/Documents/Programming/bfc/include -O3 -DNDEBUG -std=gnu2x -o CMakeFiles/bfc.dir/src/interpreter.c.o -c /home/yann/Documents/Programming/bfc/src/interpreter.c",
+  "file": "/home/yann/Documents/Programming/bfc/src/interpreter.c",
+  "output": "CMakeFiles/bfc.dir/src/interpreter.c.o"
+},
+{
+  "directory": "/home/yann/Documents/Programming/bfc/build_rel",
+  "command": "/usr/bin/cc -I/home/yann/Documents/Programming/bfc/include -O3 -DNDEBUG -std=gnu2x -o CMakeFiles/bfc.dir/src/lexer.c.o -c /home/yann/Documents/Programming/bfc/src/lexer.c",
+  "file": "/home/yann/Documents/Programming/bfc/src/lexer.c",
+  "output": "CMakeFiles/bfc.dir/src/lexer.c.o"
+},
+{
+  "directory": "/home/yann/Documents/Programming/bfc/build_rel",
+  "command": "/usr/bin/cc -I/home/yann/Documents/Programming/bfc/include -O3 -DNDEBUG -std=gnu2x -o CMakeFiles/bfc.dir/src/main.c.o -c /home/yann/Documents/Programming/bfc/src/main.c",
+  "file": "/home/yann/Documents/Programming/bfc/src/main.c",
+  "output": "CMakeFiles/bfc.dir/src/main.c.o"
+}
+]

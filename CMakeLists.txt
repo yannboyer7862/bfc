@@ -11,3 +11,7 @@ file(GLOB_RECURSE HEADERS include/**.h)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+
+if(BUILD_FOR_NATIVE_CPU)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+endif()

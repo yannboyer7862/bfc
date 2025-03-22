@@ -26,14 +26,12 @@ typedef struct {
     uint8_t memory[TOTAL_MEMORY_SIZE];
     uint64_t instruction_pointer;
     uint64_t memory_pointer;
-    struct { uint64_t key; uint64_t value; } *jump_map;
     IRInstruction* program;
     Lexer lexer;
 } Interpreter;
 
 void interpreter_init(Interpreter* interpreter);
 void interpreter_load_program_from_file(Interpreter* interpreter, char* program_path);
-void interpreter_precompute_jumps(Interpreter* interpreter);
 void interpreter_interpret(Interpreter* interpreter);
 
 #endif
